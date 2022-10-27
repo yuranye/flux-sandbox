@@ -1,0 +1,23 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: webapp1
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: webapp1
+  template:
+    metadata:
+      name: webapp1
+      labels:
+        k8s-app: webapp1
+    spec:
+      containers:
+        - name: webapp1
+          image: yuranye/webapp1:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5265
+      

@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  labels:
+    app: otel-collector
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: otel-collector
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector
+          args:
+            - --config=/etc/otel/config.yaml
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8888 # Prometheus metrics exposed by the collector
+            - containerPort: 8889 # Prometheus exporter metrics
+            - containerPort: 4317 # OTLP gRPC receiver
+          volumeMounts:
+            - name: otel-config-volume  
+              mountPath: /etc/otel/
+      restartPolicy: Always
+      volumes:
+        - name: otel-config-volume
+          configMap:
+            name: otel-collector-config
+          
+  selector:
+    matchLabels:
+      app: otel-collector
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+spec:
+  selector:
+    app: otel-collector
+  ports:
+    - port: 8888
+      targetPort: 8888
+      name: "8888"
+      nodePort: 30088
+    - port: 8889
+      targetPort: 8889
+      name: "8889"
+      nodePort: 30089
+    - port: 4317
+      targetPort: 4317
+      name: "4317"
+  type: NodePort
